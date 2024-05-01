@@ -2,6 +2,7 @@
 
 import qs from "qs";
 import { useEffect, useState } from 'react';
+import QuestionComponent from '../components/Question';
 
 const faqPageQuery = qs.stringify({
   populate: {
@@ -14,6 +15,8 @@ const faqPageQuery = qs.stringify({
     }
   },
 })
+
+// console.log(faqPageQuery)
 
 async function getStrapiData(path) {
   const baseUrl = "http://localhost:1337";
@@ -30,10 +33,6 @@ async function getStrapiData(path) {
   }
 }
 
-// const strapiData = await getStrapiData("/api/faq-page");
-// console.log(strapiData.data.attributes.blocks)
-// console.dir(strapiData, {depth: null})
-
 export default function faqPage() {
   const [strapiData, setStrapiData] = useState(null);
   const [openQuestionId, setOpenQuestionId] = useState(null);
@@ -41,8 +40,8 @@ export default function faqPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const strapiData = await getStrapiData("/api/faq-page");
-      setStrapiData(strapiData);
+      const strapiResponse = await getStrapiData("/api/faq-page");
+      setStrapiData(strapiResponse);
     }
     fetchData();
   }, []);
@@ -67,25 +66,16 @@ export default function faqPage() {
         <p className="text-lg text-gray-700 mb-8">{strapiData.data.attributes.blocks[0].subtitle}</p>
         <div className="flex justify-center">
           <div className="flex justify-center items-center h-28 border-gray-300 rounded-full bg-white w-2/3 space-x-10">
-            <h2 className={`text-2xl cursor-pointer ${audience === 'client' ? 'font-bold text-white border-gray-300 rounded-full bg-primecarers-green p-4' : ''}`} onClick={() => toggleAudience('client')}>For Clients</h2>
-            <h2 className={`text-2xl cursor-pointer ${audience === 'carer' ? 'font-bold text-white border-gray-300 rounded-full bg-primecarers-green p-4' : ''}`} onClick={() => toggleAudience('carer')}>For Carers</h2>
+            <h2 className={`text-2xl cursor-pointer ${audience === 'client' ? 'font-bold text-white border-gray-300 rounded-full bg-primecarers-green p-4' : ''}`} onClick={() => {toggleAudience('client'), toggleQuestion(null)}}>For Clients</h2>
+            <h2 className={`text-2xl cursor-pointer ${audience === 'carer' ? 'font-bold text-white border-gray-300 rounded-full bg-primecarers-green p-4' : ''}`} onClick={() => {toggleAudience('carer'), toggleQuestion(null)}}>For Carers</h2>
           </div>
         </div>
       </div>
 
-
       <div className="flex-col w-2/3 flex-grow ml-32 mr-32 items-center justify-center">
-        {/* put into component */}
         {strapiData.data.attributes.blocks[1].questions.map((data) => (
             data.audience === audience && (
-              <div key={data.id} className="mb-10 border border-gray-300 rounded-md p-8 bg-white" onClick={() => toggleQuestion(data.id)}>
-                <h1 className="text-xl font-bold text-primecarers-green cursor-pointer">
-                  {data.question}
-                </h1>
-                {openQuestionId === data.id && (
-                  <div className="mt-4" dangerouslySetInnerHTML={{ __html: data.answer }} />
-                )}
-              </div>
+              <QuestionComponent key={data.id} data={data} toggleQuestion={toggleQuestion} openQuestionId={openQuestionId} />
             )
         ))}
       </div>
